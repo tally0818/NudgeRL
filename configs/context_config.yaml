@@ -1,0 +1,10 @@
+api_key: "Your_OpenAI_API_KEY"
+model_name: "gpt-4o-mini"
+num_contexts: 5
+num_samples: 500
+seed: 42
+pope_style:
+  Deepseek_api_key: "Your_Deepseek_API_KEY"
+  model_name: "deepseek-reasoner"
+  Max_tries: 5
+  filter_correct: False

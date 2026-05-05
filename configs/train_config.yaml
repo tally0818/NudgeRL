@@ -1,0 +1,46 @@
+model_name: "Qwen/Qwen3-4B-Instruct-2507"
+lora_rank: 32
+seed: 42
+gradient_checkpointing: true
+WANDB_API_KEY: "Your_WANDB_API_KEY"
+wandb_project: "Your_WANDB_Project_Name"
+max_steps: 500
+save_steps: 500
+eval_steps: 50
+random_state: 3407
+use_vllm: True
+vllm_mode: "colocate"
+temperature: 1.0
+min_p: 0
+top_p: 0.95
+top_k: -1
+learning_rate: 2.0e-5
+lr_scheduler: "cosine"
+warmup_ratio: 0.05
+weight_decay: 0.001
+beta: 0
+epsilon: 0.2
+optimizer: "adamw_8bit"
+logging_steps: 1
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 1
+generation_batch_size: 8
+max_prompt_length: 2048
+max_completion_length: 6144
+
+grpope:
+  prefix_ratio: 0.15
+  max_prefix_length: 512
+  num_rollouts: 8
+
+grpo:
+  num_rollouts: 8
+nudge_grpo:
+  num_hints: 2
+  rollouts_per_hint: 4
+  epsilon_high: 0.2
+  adv_eps: 1.0e-5
+  adv_lbd: 1.1
+  p_dropout: 0.5
+  sampler_type: "sequential"
+  distill_coeff: 0.1

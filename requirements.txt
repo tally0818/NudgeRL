@@ -1,0 +1,27 @@
+datasets==4.3.0
+jsonlines
+math_verify==0.9.0
+openai>=1.0.0
+pyyaml
+tqdm
+vllm==0.10.2
+# Optional vLLM sampler acceleration (may require CUDA/torch-matched wheel).
+flashinfer-python
+accelerate==1.12.0
+torch==2.8.0
+transformers==4.56.2
+pandas==2.3.3
+numpy==2.0.2
+regex==2025.11.3
+tqdm==4.67.1
+scikit-learn==1.6.1
+math_verify==0.9.0
+matplotlib==3.10.0
+omegaconf==2.3.0
+wandb==0.23.0
+trl==0.23.0
+torchvision==0.23.0
+bitsandbytes==0.49.1
+xformers==0.0.32.post1
+triton==3.4.0
+peft==0.17.1
