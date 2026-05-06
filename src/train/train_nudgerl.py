@@ -10,7 +10,7 @@ from datasets import load_dataset
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import GRPOConfig
-from .NudgeGRPOTrainer import NudgeGRPOTrainer
+from .NudgeRLTrainer import NudgeRLTrainer
 import wandb
 
 
@@ -66,7 +66,7 @@ def has_saved_tokenizer(path: str) -> bool:
 def main():
     parser = argparse.ArgumentParser(description="Build training dataset from hints")
     parser.add_argument("--config", type=str, required=True, help="Path to config file")
-    parser.add_argument("--eps_high", required=False, type=float, default=0.2, help="Epsilon high for NudgeGRPO")
+    parser.add_argument("--eps_high", required=False, type=float, default=0.2, help="Epsilon high for NudgeRL")
     args = parser.parse_args()
 
     with open(args.config, "r", encoding="utf-8") as f:
@@ -77,8 +77,8 @@ def main():
     max_seq_length = cfg["max_prompt_length"] + cfg["max_completion_length"]
     lora_rank = cfg.get("lora_rank", 16)
     use_gradient_checkpointing = bool(cfg.get("gradient_checkpointing", True))
-    nudge_cfg = cfg["nudge_grpo"]
-    eps_high = args.eps_high if args.eps_high is not None else nudge_cfg["epsilon_high"]
+    nudgerl_cfg = cfg["nudgerl"]
+    eps_high = args.eps_high if args.eps_high is not None else nudgerl_cfg["epsilon_high"]
     max_steps = cfg.get("max_steps", 300)
     save_steps = cfg.get("save_steps", 50)
     set_seed(seed)
@@ -89,8 +89,8 @@ def main():
     model_id = model_name.split("/")[-1]
     output_root = cfg.get("output_root", "outputs/models")
     baseline_save_dir = os.path.join(output_root, model_id, "baseline")
-    algorithm_name = f"NudgeGRPO_{nudge_cfg['num_hints']}x{nudge_cfg['rollouts_per_hint']}_eps{eps_high*100:.0f}"
-    algorithm_name += "_random" if nudge_cfg["sampler_type"] == "random" else ""
+    algorithm_name = f"NudgeRL_{nudgerl_cfg['num_hints']}x{nudgerl_cfg['rollouts_per_hint']}_eps{eps_high*100:.0f}"
+    algorithm_name += "_random" if nudgerl_cfg["sampler_type"] == "random" else ""
     model_save_dir = os.path.join(output_root, model_id, algorithm_name)
     os.makedirs(baseline_save_dir, exist_ok=True)
     os.makedirs(model_save_dir, exist_ok=True)
@@ -128,7 +128,7 @@ def main():
 
     print(f"Gradient checkpointing: {'enabled' if use_gradient_checkpointing else 'disabled'}")
     model.print_trainable_parameters()
-    print("Starting NudgeGRPO training...")
+    print("Starting NudgeRL training...")
     dataset = load_dataset(
         "json",
         data_files="data/dapo17k_contexts_5_samples_500.jsonl",
@@ -186,7 +186,7 @@ def main():
         logging_steps=cfg["logging_steps"],
         per_device_train_batch_size=cfg["per_device_train_batch_size"],
         gradient_accumulation_steps=cfg["gradient_accumulation_steps"],
-        num_generations=nudge_cfg["num_hints"]*nudge_cfg["rollouts_per_hint"],
+        num_generations=nudgerl_cfg["num_hints"]*nudgerl_cfg["rollouts_per_hint"],
         generation_batch_size=cfg["generation_batch_size"],
         max_prompt_length=cfg["max_prompt_length"],
         max_completion_length=cfg["max_completion_length"],
@@ -197,7 +197,7 @@ def main():
         output_dir="ckpts",
 
     )
-    trainer = NudgeGRPOTrainer(
+    trainer = NudgeRLTrainer(
         model=model,
         processing_class=tokenizer,
         reward_fn=reward,
@@ -205,13 +205,13 @@ def main():
         train_dataset=dataset,
         args=training_args,
         system_prompt=system_prompt,
-        adv_eps=nudge_cfg["adv_eps"],
-        adv_lbd=nudge_cfg["adv_lbd"],
-        rollout_per_hint=nudge_cfg["rollouts_per_hint"],
-        p_dropout=nudge_cfg["p_dropout"],
-        num_hint=nudge_cfg["num_hints"],
-        sampler_type=nudge_cfg["sampler_type"],
-        distill_coeff=nudge_cfg["distill_coeff"],
+        adv_eps=nudgerl_cfg["adv_eps"],
+        adv_lbd=nudgerl_cfg["adv_lbd"],
+        rollout_per_hint=nudgerl_cfg["rollouts_per_hint"],
+        p_dropout=nudgerl_cfg["p_dropout"],
+        num_hint=nudgerl_cfg["num_hints"],
+        sampler_type=nudgerl_cfg["sampler_type"],
+        distill_coeff=nudgerl_cfg["distill_coeff"],
 
     )
     trainer.train()

@@ -214,7 +214,7 @@ def compute_advantage_naive(
     del lbd
     advantages = (rewards - rewards.mean()) / (rewards.std(unbiased=False) + epsilon)
     return advantages, rewards, gids, group_mean, uniq
-class NudgeGRPOTrainer(GRPOTrainer):
+class NudgeRLTrainer(GRPOTrainer):
     def __init__(
         self,
         *args,
@@ -230,7 +230,7 @@ class NudgeGRPOTrainer(GRPOTrainer):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        assert reward_fn is not None, "NudgeGRPOTrainer requires reward_fn=callable"
+        assert reward_fn is not None, "NudgeRLTrainer requires reward_fn=callable"
         self.reward_fn = reward_fn
         self.system_prompt = system_prompt
 
@@ -254,7 +254,7 @@ class NudgeGRPOTrainer(GRPOTrainer):
         target_ng = self.num_hint * self.rollout_per_hint
         if getattr(self, "num_generations", None) != target_ng:
             print(
-                f"[NudgeGRPOTrainer] Auto-updating num_generations to {target_ng} (=M*K). "
+                f"[NudgeRLTrainer] Auto-updating num_generations to {target_ng} (=M*K). "
                 "Actual rollouts per example are variable due to dropout, but we won't rely on view(-1,num_generations)."
             )
             self.num_generations = target_ng
@@ -348,7 +348,7 @@ class NudgeGRPOTrainer(GRPOTrainer):
 
         if getattr(self, "vllm_tensor_parallel_size", 1) != 1:
             raise RuntimeError(
-                "NudgeGRPOTrainer variable-n in colocate currently assumes "
+                "NudgeRLTrainer variable-n in colocate currently assumes "
                 "vllm_tensor_parallel_size == 1"
             )
 
@@ -396,7 +396,7 @@ class NudgeGRPOTrainer(GRPOTrainer):
 
         if not self._warned_missing_vllm_sync:
             print(
-                "[NudgeGRPOTrainer] Warning: no known vLLM sync hook found; "
+                "[NudgeRLTrainer] Warning: no known vLLM sync hook found; "
                 "rollouts may use stale policy weights."
             )
             self._warned_missing_vllm_sync = True

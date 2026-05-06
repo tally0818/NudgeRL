@@ -2,11 +2,11 @@
 
 Official code for **Nudging Beyond the Comfort Zone: Efficient Strategy-Guided Exploration for RLVR**.
 
-NudgeRL is a reinforcement learning with verifiable rewards (RLVR) framework for improving exploration in mathematical reasoning. Instead of increasing the rollout budget by brute force, NudgeRL samples lightweight strategy-level contexts, uses them to induce diverse reasoning trajectories, and trains with NudgeGRPO to transfer the discovered behavior back to the base policy.
+NudgeRL is a reinforcement learning with verifiable rewards (RLVR) framework for improving exploration in mathematical reasoning. Instead of increasing the rollout budget by brute force, NudgeRL samples lightweight strategy-level contexts, uses them to induce diverse reasoning trajectories, and transfers the discovered behavior back to the base policy.
 
 This repository includes:
 
-- `NudgeGRPOTrainer`, implementing strategy-conditioned rollouts, inter-intra group advantage estimation, and a distillation term.
+- `NudgeRLTrainer`, implementing strategy-conditioned rollouts, inter-intra group advantage estimation, and a distillation term.
 - GRPO and POPE-style oracle-prefix baselines.
 - Dataset builders for DAPO-Math-17k strategy contexts and POPE-style oracle prefixes.
 - vLLM-based evaluation on AIME, AMC23, MATH500, and Apex Shortlist.
@@ -22,11 +22,11 @@ scripts/
   build_pope_st_dataset.sh  # build POPE-style oracle-prefix dataset
   train_grpo.sh             # GRPO baseline
   train_grpope.sh           # POPE-style baseline
-  train_nudgegrpo.sh        # NudgeRL training
+  train_nudgerl.sh          # NudgeRL training
   eval_model.sh             # LoRA adapter evaluation wrapper
 src/
   data/                     # dataset downloaders and benchmark loaders
-  train/                    # GRPO, POPE, and NudgeGRPO training code
+  train/                    # GRPO, POPE, and NudgeRL training code
   eval_model.py             # evaluate a trained LoRA adapter
   eval_model_base.py        # evaluate a base Hugging Face model
   verify.py                 # math-verify reward wrapper
@@ -79,12 +79,12 @@ Edit `configs/train_config.yaml` before launching a run:
 - `model_name`: base model, for example `Qwen/Qwen3-4B-Instruct-2507`.
 - `WANDB_API_KEY` and `wandb_project`: Weights & Biases logging.
 - `max_steps`, `save_steps`, batch sizes, sequence lengths, and sampling parameters.
-- `nudge_grpo`: NudgeRL-specific hyperparameters.
+- `nudgerl`: NudgeRL-specific hyperparameters.
 
 Run NudgeRL:
 
 ```bash
-bash scripts/train_nudgegrpo.sh
+bash scripts/train_nudgerl.sh
 ```
 
 Run GRPO and POPE-style baselines:
@@ -97,7 +97,7 @@ bash scripts/train_grpope.sh
 The main training entry points also accept useful overrides:
 
 ```bash
-python -m src.train.train_nudgegrpo --config configs/train_config.yaml --eps_high 0.2
+python -m src.train.train_nudgerl --config configs/train_config.yaml --eps_high 0.2
 python -m src.train.train_grpo --config configs/train_config.yaml --num_rollouts 8 --eps_high 0.2
 python -m src.train.train_grpope --config configs/train_config.yaml --num_rollouts 8 --eps_high 0.2
 ```
@@ -111,7 +111,7 @@ outputs/models/<base-model-id>/<method-name>/
 For the default Qwen config, NudgeRL saves to a path like:
 
 ```text
-outputs/models/Qwen3-4B-Instruct-2507/NudgeGRPO_2x4_eps20/
+outputs/models/Qwen3-4B-Instruct-2507/NudgeRL_2x4_eps20/
 ```
 
 ## Evaluation
@@ -120,7 +120,7 @@ Evaluate a trained LoRA adapter:
 
 ```bash
 bash scripts/eval_model.sh \
-  outputs/models/Qwen3-4B-Instruct-2507/NudgeGRPO_2x4_eps20 \
+  outputs/models/Qwen3-4B-Instruct-2507/NudgeRL_2x4_eps20 \
   --datasets AIME,AMC23,MATH500,APEX_SHORTLIST \
   --num-samples 128 \
   --estimate-k 16 \
@@ -152,11 +152,10 @@ NudgeRL defaults in `configs/train_config.yaml`:
 
 | Key | Meaning |
 | --- | --- |
-| `nudge_grpo.num_hints` | Number of strategy contexts sampled per problem. |
-| `nudge_grpo.rollouts_per_hint` | Rollout budget allocated per strategy context. |
-| `nudge_grpo.p_dropout` | Probability of dropping the context and sampling from the original prompt. |
-| `nudge_grpo.adv_lbd` | Inter-context advantage weight. |
-| `nudge_grpo.distill_coeff` | Distillation weight from context-conditioned rollouts to the base prompt. |
-| `nudge_grpo.sampler_type` | `sequential` or `random` context sampler. |
+| `nudge_grpo.num_hints` | Number of strategy contexts sampled per problem ($\vert\mathcal{C}(x)\vert$).|
+| `nudge_grpo.rollouts_per_hint` | Rollout budget allocated per strategy context ($N/\vert\mathcal{C}(x)\vert$). |
+| `nudge_grpo.p_dropout` | Probability of dropping the context and sampling from the original prompt ($p_\text{drop}$). |
+| `nudge_grpo.adv_lbd` | Inter-context advantage weight ($\lambda$). |
+| `nudge_grpo.distill_coeff` | Distillation weight from context-conditioned rollouts to the base prompt. ($\lambda_\text{distill}$) |
 
 Paper-style defaults use LoRA rank 32, max prompt length 2048, max completion length 6144, 500 RL steps, AdamW 8-bit, learning rate `2e-5`, and `2 x 4` NudgeRL rollouts.
