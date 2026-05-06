@@ -152,10 +152,10 @@ NudgeRL defaults in `configs/train_config.yaml`:
 
 | Key | Meaning |
 | --- | --- |
-| `nudge_grpo.num_hints` | Number of strategy contexts sampled per problem ($\vert\mathcal{C}(x)\vert$).|
-| `nudge_grpo.rollouts_per_hint` | Rollout budget allocated per strategy context ($N/\vert\mathcal{C}(x)\vert$). |
-| `nudge_grpo.p_dropout` | Probability of dropping the context and sampling from the original prompt ($p_\text{drop}$). |
-| `nudge_grpo.adv_lbd` | Inter-context advantage weight ($\lambda$). |
-| `nudge_grpo.distill_coeff` | Distillation weight from context-conditioned rollouts to the base prompt. ($\lambda_\text{distill}$) |
+| `nudgerl.num_hints` | Number of strategy contexts sampled per problem ($\vert\mathcal{C}(x)\vert$).|
+| `nudgerl.rollouts_per_hint` | Rollout budget allocated per strategy context ($N/\vert\mathcal{C}(x)\vert$). |
+| `nudgerl.p_dropout` | Probability of dropping the context and sampling from the original prompt ($p_\text{drop}$). |
+| `nudgerl.adv_lbd` | Inter-context advantage weight ($\lambda$). |
+| `nudgerl.distill_coeff` | Distillation weight from context-conditioned rollouts to the base prompt. ($\lambda_\text{distill}$) |
 
 Paper-style defaults use LoRA rank 32, max prompt length 2048, max completion length 6144, 500 RL steps, AdamW 8-bit, learning rate `2e-5`, and `2 x 4` NudgeRL rollouts.
