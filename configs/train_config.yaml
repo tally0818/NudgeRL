@@ -35,6 +35,7 @@ grpope:
 
 grpo:
   num_rollouts: 8
+  
 nudgerl:
   num_hints: 2
   rollouts_per_hint: 4
