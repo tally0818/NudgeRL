@@ -1,6 +1,6 @@
 # NudgeRL
 
-Official code for **Nudging Beyond the Comfort Zone: Efficient Strategy-Guided Exploration for RLVR**.
+Official code for [**Nudging Beyond the Comfort Zone: Efficient Strategy-Guided Exploration for RLVR**.](https://arxiv.org/pdf/2605.15726)
 
 NudgeRL is a reinforcement learning with verifiable rewards (RLVR) framework for improving exploration in mathematical reasoning. Instead of increasing the rollout budget by brute force, NudgeRL samples lightweight strategy-level contexts, uses them to induce diverse reasoning trajectories, and transfers the discovered behavior back to the base policy.
 
